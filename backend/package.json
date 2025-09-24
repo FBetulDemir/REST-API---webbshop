@@ -16,8 +16,7 @@
     "@aws-sdk/client-dynamodb": "^3.895.0",
     "@aws-sdk/lib-dynamodb": "^3.895.0",
     "dotenv": "^17.2.2",
-    "express": "^5.1.0",
-    "start": "^5.1.0"
+    "express": "^5.1.0"
   },
   "devDependencies": {
     "@types/node": "^24.5.2",

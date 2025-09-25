@@ -1,38 +1,47 @@
 import { Router } from 'express';
 import { ddbDocClient, TABLE_NAME } from '../data/dynamoDb.js';
 import { GetCommand, PutCommand, DeleteCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import type { Cart, CreateCartRequest, UpdateCartRequest, CartResponse } from '../data/types.js';
 
 const router = Router();
 
-// TypeScript interfaces för Cart-objekt
-export interface Cart {
-  PK: string;           // CART#1, CART#2, etc.
-  SK: string;           // #METADATA
-  userId: string;       // USER#1, USER#2, etc.
-  productId: string;    // PRODUCT#3, PRODUCT#7, etc.
-  amount: number;       // Antal av produkten
-  type: 'cart';         // Alltid 'cart'
-}
-
-// Interface för att skapa ny cart
-export interface CreateCartRequest {
-  userId: string;
-  productId: string;
-  amount: number;
-}
-
-// Interface för att uppdatera cart
-export interface UpdateCartRequest {
-  amount: number;
-}
-
-// Interface för cart response (utan PK/SK för frontend)
-export interface CartResponse {
-  id: string;           // Extraherat från PK (CART#1 -> 1)
-  userId: string;
-  productId: string;
-  amount: number;
-  type: 'cart';
-}
+// GET /api/cart - Hämta alla cart-objekt
+router.get('/', async (req, res) => {
+  try {
+    const command = new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: '#type = :cartType',
+      ExpressionAttributeNames: {
+        '#type': 'type'
+      },
+      ExpressionAttributeValues: {
+        ':cartType': 'cart'
+      }
+    });
+    
+    const result = await ddbDocClient.send(command);
+    
+    // Konvertera till CartResponse format
+    const carts: CartResponse[] = result.Items?.map(item => ({
+      id: item.PK?.replace('CART#', '') || '',
+      userId: item.userId || '',
+      productId: item.productId || '',
+      amount: item.amount || 0,
+      type: 'cart' as const
+    })) || [];
+    
+    res.json({
+      success: true,
+      data: carts,
+      count: carts.length
+    });
+  } catch (error) {
+    console.error('Error fetching carts:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch carts'
+    });
+  }
+});
 
 export default router;

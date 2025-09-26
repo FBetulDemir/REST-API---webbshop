@@ -17,10 +17,20 @@ const table = process.env.TABLE_NAME!;
 router.get("/", async (req: Request, res: Response) => {
   try {
     const result = await ddb.send(new ScanCommand({ TableName: table }));
-    res.json(result.Items);
+    const users = (result.Items || []).filter(
+      (item) => item.type?.S === "user"
+    );
+    res.json(users);
   } catch (error) {
     res.status(500).json({ error: "Could not retrieve users" });
   }
 });
+
+
+router.post("/", async (req: Request, res: Response) => {
+    try {
+        
+    }
+})
 
 export default router;

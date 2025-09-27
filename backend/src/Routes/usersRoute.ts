@@ -6,6 +6,8 @@ import {
   ScanCommand,
 } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { randomUUID } from "crypto";
+import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -17,6 +19,7 @@ const table = process.env.TABLE_NAME!;
 export interface User {
   id: string;
   name: string;
+  password: string;
   email?: string;
   type: "user";
 }
@@ -33,12 +36,14 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/", async (req: Request, res: Response) => {
+router.post("/register", async (req: Request, res: Response) => {
   try {
-    const { id, name } = req.body;
-    if (!id || !name) {
-      return res.status(400).json({ error: "id and name are required" });
+    const { password, name } = req.body;
+    if (!password || !name) {
+      return res.status(400).json({ error: "password and name are required" });
     }
+    const id = randomUUID();
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const item = {
       pk: `USER#${id}`,
@@ -46,6 +51,7 @@ router.post("/", async (req: Request, res: Response) => {
       type: "user",
       id,
       name,
+      hashedPassword,
     };
 
     await ddb.send(new PutCommand({ TableName: table, Item: item }));

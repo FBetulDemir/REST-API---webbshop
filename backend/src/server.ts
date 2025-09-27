@@ -1,9 +1,11 @@
 import express from "express";
 import usersRouter from "./Routes/usersRoute.js";
-
-const app = express();
 import dotenv from "dotenv";
 dotenv.config();
+
+const app = express();
+
+app.use(express.json());
 
 const port = process.env.PORT;
 

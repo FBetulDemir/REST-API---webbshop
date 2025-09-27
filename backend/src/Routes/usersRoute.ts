@@ -5,7 +5,7 @@ import {
   GetItemCommand,
   ScanCommand,
 } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -13,6 +13,13 @@ const router = express.Router();
 const client = new DynamoDBClient({ region: "eu-north-1" });
 const ddb = DynamoDBDocumentClient.from(client);
 const table = process.env.TABLE_NAME!;
+
+export interface User {
+  id: string;
+  name: string;
+  email?: string;
+  type: "user";
+}
 
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -33,8 +40,15 @@ router.post("/", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "id and name are required" });
     }
 
-    // Add logic to create user here, for example:
-    // await ddb.send(new PutItemCommand({ ... }));
+    const item = {
+      pk: `USER#${id}`,
+      sk: "#METADATA",
+      type: "user",
+      id,
+      name,
+    };
+
+    await ddb.send(new PutCommand({ TableName: table, Item: item }));
 
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {

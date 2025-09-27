@@ -26,11 +26,21 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-
 router.post("/", async (req: Request, res: Response) => {
-    try {
-        
+  try {
+    const { id, name } = req.body;
+    if (!id || !name) {
+      return res.status(400).json({ error: "id and name are required" });
     }
-})
+
+    // Add logic to create user here, for example:
+    // await ddb.send(new PutItemCommand({ ... }));
+
+    res.status(201).json({ message: "User created successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Could not create user" });
+  }
+});
 
 export default router;

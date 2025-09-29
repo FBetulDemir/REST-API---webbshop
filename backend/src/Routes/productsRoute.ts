@@ -2,7 +2,7 @@ import { Router } from "express";
 import express from "express"
 import type { Request, Response } from "express";
 import { ddbDocClient } from "../data/dynamoDb.js";
-import { PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb"; 
+import { DeleteCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb"; 
 import type { Product } from "../data/types/produstsType.js";
 import { createProductSchema, productsArraySchema } from "../data/validators/productValidate.js";
 
@@ -56,6 +56,32 @@ router.post("/",async (req: Request, res: Response)=>{
 	}
 	
 	
+})
+router.delete("/:productId",async(req: Request, res: Response)=>{
+	try{
+		const deleteId=req.params.productId
+		
+    if (!deleteId) {
+      return res.status(400).json({ message: "Product ID is required" });
+    }
+	 const pk = `PRODUCT#${deleteId}`;
+    const sk = "#METADATA";
+
+    await ddbDocClient.send(
+      new DeleteCommand({
+        TableName: myTable,
+        Key: { pk, sk }
+      })
+    );
+
+    res.status(200).json({ message: `Product ${deleteId} deleted successfully` });
+
+	}catch(error){
+		console.log(error)
+		res.status(500).json({message:"Something went wrong" })
+	}
+	
+
 })
 
 export default router;

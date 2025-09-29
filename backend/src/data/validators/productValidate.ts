@@ -1,5 +1,5 @@
 import z from "zod"
- const productSchema=z.object({
+ export const productSchema=z.object({
 	pk:z.string(),
 	sk:z.string(),
 	amountInStock:z.number().nonnegative(),

@@ -2,16 +2,29 @@ import { Router } from "express";
 import express from "express"
 import type { Request, Response } from "express";
 import { ddbDocClient } from "../data/dynamoDb.js";
-import { DeleteCommand, GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb"; 
+import { DeleteCommand, GetCommand, PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"; 
 import type { Product } from "../data/types/produstsType.js";
-import { createProductSchema, productsArraySchema, productSchema } from "../data/validators/productValidate.js";
+import { createProductSchema, editschema, productsArraySchema, productSchema } from "../data/validators/productValidate.js";
 
 const router = Router();
 const myTable = "webshop";
 router.use(express.json())
 
+interface ProductIdParam{
+	productId:string
+}
+
+interface ProductResponse extends Product {}
+
+interface ProductsArrayResponse {
+	products: Product[];
+}
+
+interface MessageResponse {
+	message: string;
+}
 //lista alla produkter
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", async (req, res) => {
 	const params = {
 		TableName: myTable,
 		FilterExpression: "begins_with(pk, :pkPrefix)",
@@ -33,7 +46,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 //hämta en produkt
-router.get("/:productId", async (req: Request, res: Response) => {
+router.get("/:productId", async (req: Request<ProductIdParam>, res: Response<ProductResponse | MessageResponse>) => {
 	try {
 		const selectId=req.params.productId
 		if (!selectId) {
@@ -93,7 +106,7 @@ router.post("/",async (req: Request, res: Response)=>{
 })
 
 //ta bort produkt
-router.delete("/:productId",async(req: Request, res: Response)=>{
+router.delete("/:productId",async(req: Request<ProductIdParam>, res: Response<MessageResponse>)=>{
 	try{
 		const deleteId=req.params.productId
 		
@@ -120,4 +133,44 @@ router.delete("/:productId",async(req: Request, res: Response)=>{
 	
 })
 
-export default router;
+//uppdatera produkt 
+router.put("/:productId", async (req: Request<ProductIdParam>, res: Response) => { 
+	const { productId } = req.params;
+	
+    try {
+      const validatedData = editschema.parse(req.body);
+      const { name, price, image, amountInStock } = validatedData;
+
+      await ddbDocClient.send(
+        new UpdateCommand({
+          TableName: myTable,
+          Key: {
+            pk: `PRODUCT#${productId}`,
+            sk: "#METADATA",
+          },
+          UpdateExpression:
+            "SET #n = :name, price = :price, image = :image, amountInStock = :amountInStock",
+			
+          ExpressionAttributeValues: {
+            ":name": name,
+            ":price": price,
+            ":image": image,
+            ":amountInStock": amountInStock,
+          },
+          ReturnValues: "ALL_NEW",
+        })
+      );
+
+      res.status(200).json({ message: "Product updated successfully" });
+    } catch (error: any) {
+      if (error?.errors) {
+        return res.status(400).json({ message: "Validation failed" });
+      }
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  })
+	
+
+	export default router;
+		

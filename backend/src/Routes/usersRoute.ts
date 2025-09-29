@@ -9,12 +9,15 @@ import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+
 dotenv.config();
 
 const router = express.Router();
 const client = new DynamoDBClient({ region: "eu-north-1" });
 const ddb = DynamoDBDocumentClient.from(client);
 const table = process.env.TABLE_NAME!;
+const JWT_SECRET = process.env.JWT_SECRET || "secretPassword";
 
 export interface User {
   id: string;
@@ -61,6 +64,28 @@ router.post("/register", async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ error: "Could not create user" });
   }
+});
+
+router.post("/login", async (req: Request, res: Response) => {
+  const { name, password } = req.body;
+  if (!name || !password)
+    return res.status(400).json({ error: "name and password required" });
+
+  const result = await ddb.send(new ScanCommand({ TableName: table }));
+  const user = (result.Items || []).find(
+    (u) => u.type?.S === "user" && u.name?.S === name
+  );
+
+  if (!user) return res.status(401).json({ error: "Invalid credentials" });
+  const hashedPassword = user.hashedPassword?.S;
+  if (!hashedPassword)
+    return res.status(401).json({ error: "Invalid credentials" });
+  const ok = await bcrypt.compare(password, hashedPassword);
+  if (!ok) return res.status(401).json({ error: "Invalid credentials" });
+
+  const token = jwt.sign({ id: user.id, name: user.name }, JWT_SECRET);
+
+  res.json({ message: "Login successful", token });
 });
 
 export default router;

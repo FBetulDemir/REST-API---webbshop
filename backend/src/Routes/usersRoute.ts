@@ -5,7 +5,11 @@ import {
   GetItemCommand,
   ScanCommand,
 } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
@@ -36,6 +40,24 @@ router.get("/", async (req: Request, res: Response) => {
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: "Could not retrieve users" });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    const result = await ddb.send(
+      new GetCommand({
+        TableName: table,
+        Key: { pk: `USER#${req.params.id}`, sk: "#METADATA" },
+      })
+    );
+    if (!result.Item) return res.status(404).json({ error: "User not found" });
+
+    const { hashedPassword, ...safe } = result.Item;
+    res.json(safe);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to fetch user" });
   }
 });
 

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ddbDocClient, TABLE_NAME } from '../data/dynamoDb.js';
 import { GetCommand, PutCommand, DeleteCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import type { Cart, CreateCartRequest, UpdateCartRequest, CartResponse } from '../data/types.js';
+import { createCartSchema } from '../schemas/cartSchemas.js';
 
 const router = Router();
 
@@ -91,7 +92,9 @@ router.get('/:id', async (req, res) => {
 // POST /api/cart - Skapa nytt cart-objekt
 router.post('/', async (req, res) => {
   try {
-    const { userId, productId, amount }: CreateCartRequest = req.body;
+    // Validera inkommande data
+    const validatedData = createCartSchema.parse(req.body);
+    const { userId, productId, amount } = validatedData;
     
     // Generera unikt ID för cart
     const cartId = `CART#${Date.now()}`;
@@ -125,8 +128,22 @@ router.post('/', async (req, res) => {
       success: true,
       data: cartResponse
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating cart:', error);
+    
+    // Hantera valideringsfel
+    if (error.name === 'ZodError') {
+      const errorDetails = error.issues || error.errors || [];
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errorDetails,
+        message: errorDetails.length > 0 
+          ? errorDetails.map((err: any) => err.message).join(', ')
+          : 'Invalid input data'
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: 'Failed to create cart'

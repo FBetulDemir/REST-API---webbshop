@@ -6,6 +6,7 @@ import {
   ScanCommand,
 } from "@aws-sdk/client-dynamodb";
 import {
+  DeleteCommand,
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
@@ -62,33 +63,38 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// create a new user
 router.post("/register", async (req: Request, res: Response) => {
   try {
-    const { password, name } = req.body;
+    const { password, name, email } = req.body;
     if (!password || !name) {
       return res.status(400).json({ error: "password and name are required" });
     }
     const id = randomUUID();
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const item = {
+    const user = {
       pk: `USER#${id}`,
       sk: "#METADATA",
       type: "user",
       id,
       name,
+      email,
       hashedPassword,
     };
 
-    await ddb.send(new PutCommand({ TableName: table, Item: item }));
+    await ddb.send(new PutCommand({ TableName: table, Item: user }));
 
-    res.status(201).json({ message: "User created successfully" });
+    // res.status(201).json({ message: "User created successfully" });
+    const { hashedPassword: _, ...safe } = user;
+    res.status(201).json(safe);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Could not create user" });
   }
 });
 
+// user login
 router.post("/login", async (req: Request, res: Response) => {
   const { name, password } = req.body;
   if (!name || !password)

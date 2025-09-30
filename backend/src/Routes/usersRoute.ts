@@ -9,6 +9,7 @@ import {
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
+  UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
@@ -108,6 +109,43 @@ router.post("/login", async (req: Request, res: Response) => {
   const token = jwt.sign({ id: user.id, name: user.name }, JWT_SECRET);
 
   res.json({ message: "Login successful", token });
+});
+
+router.put("/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, email, password } = req.body as {
+      name?: string;
+      email?: string;
+      password?: string;
+    };
+
+    const updates: string[] = [];
+    const values: Record<string, any> = {};
+
+    if (name) {
+      updates.push("#n = :name");
+      values[":name"] = name;
+    }
+    if (email) {
+      updates.push("email = :email");
+      values[":email"] = email;
+    }
+    if (password) {
+      updates.push("hashedPassword = :pw");
+      values[":pw"] = await bcrypt.hash(password, 10);
+    }
+
+    const result = await ddb.send(
+      new UpdateCommand({
+        TableName: table,
+        Key: { pk: `USER#${id}`, sk: "#METADATA" },
+      })
+    );
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Could not update user" });
+  }
 });
 
 export default router;

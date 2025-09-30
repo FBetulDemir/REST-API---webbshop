@@ -12,6 +12,14 @@ import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
+import {
+  idParamSchema,
+  loginSchema,
+  registerSchema,
+  updateUserSchema,
+  validate,
+} from "../validation/validateUser.js";
+import type { User } from "../types/user.js";
 
 dotenv.config();
 
@@ -21,21 +29,19 @@ const ddb = DynamoDBDocumentClient.from(client);
 const table = process.env.TABLE_NAME!;
 const JWT_SECRET = process.env.JWT_SECRET || "secretPassword";
 
-export interface User {
-  id: string;
-  name: string;
-  password: string;
-  email?: string;
-  type: "user";
-}
+// export interface User {
+//   id: string;
+//   name: string;
+//   password: string;
+//   email?: string;
+//   type: "user";
+// }
 
 // get all users
 router.get("/", async (req: Request, res: Response) => {
   try {
     const result = await ddb.send(new ScanCommand({ TableName: table }));
-    const users = (result.Items || []).filter(
-      (item) => item.type?.S === "user"
-    );
+    const users = (result.Items || []).filter((item) => item.type === "user");
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: "Could not retrieve users" });
@@ -43,7 +49,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // get user by id
-router.get("/:id", async (req, res) => {
+router.get("/:id", validate(idParamSchema, "params"), async (req, res) => {
   try {
     const result = await ddb.send(
       new GetCommand({
@@ -62,135 +68,153 @@ router.get("/:id", async (req, res) => {
 });
 
 // create a new user
-router.post("/register", async (req: Request, res: Response) => {
-  try {
-    const { password, name, email } = req.body;
-    if (!password || !name) {
-      return res.status(400).json({ error: "password and name are required" });
+router.post(
+  "/register",
+  validate(registerSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const { password, name, email } = req.body;
+      if (!password || !name) {
+        return res
+          .status(400)
+          .json({ error: "password and name are required" });
+      }
+      const id = randomUUID();
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const user = {
+        pk: `USER#${id}`,
+        sk: "#METADATA",
+        type: "user",
+        id,
+        name,
+        email,
+        hashedPassword,
+      };
+
+      await ddb.send(new PutCommand({ TableName: table, Item: user }));
+
+      // res.status(201).json({ message: "User created successfully" });
+      const { hashedPassword: _, ...safe } = user;
+      res.status(201).json(safe);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Could not create user" });
     }
-    const id = randomUUID();
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = {
-      pk: `USER#${id}`,
-      sk: "#METADATA",
-      type: "user",
-      id,
-      name,
-      email,
-      hashedPassword,
-    };
-
-    await ddb.send(new PutCommand({ TableName: table, Item: user }));
-
-    // res.status(201).json({ message: "User created successfully" });
-    const { hashedPassword: _, ...safe } = user;
-    res.status(201).json(safe);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Could not create user" });
   }
-});
+);
 
 // user login
-router.post("/login", async (req: Request, res: Response) => {
-  const { name, password } = req.body;
-  if (!name || !password)
-    return res.status(400).json({ error: "name and password required" });
+router.post(
+  "/login",
+  validate(loginSchema),
+  async (req: Request, res: Response) => {
+    const { name, password } = req.body;
+    if (!name || !password)
+      return res.status(400).json({ error: "name and password required" });
 
-  const result = await ddb.send(new ScanCommand({ TableName: table }));
-  const user = (result.Items || []).find(
-    (u) => u.type?.S === "user" && u.name?.S === name
-  );
+    const result = await ddb.send(new ScanCommand({ TableName: table }));
+    const user = (result.Items || []).find(
+      (u) => u.type?.S === "user" && u.name?.S === name
+    );
 
-  if (!user) return res.status(401).json({ error: "Invalid credentials" });
-  const hashedPassword = user.hashedPassword?.S;
-  if (!hashedPassword)
-    return res.status(401).json({ error: "Invalid credentials" });
-  const ok = await bcrypt.compare(password, hashedPassword);
-  if (!ok) return res.status(401).json({ error: "Invalid credentials" });
+    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+    const hashedPassword = user.hashedPassword?.S;
+    if (!hashedPassword)
+      return res.status(401).json({ error: "Invalid credentials" });
+    const ok = await bcrypt.compare(password, hashedPassword);
+    if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
-  const token = jwt.sign({ id: user.id, name: user.name }, JWT_SECRET);
+    const token = jwt.sign({ id: user.id, name: user.name }, JWT_SECRET);
 
-  res.json({ message: "Login successful", token });
-});
+    res.json({ message: "Login successful", token });
+  }
+);
 
 // update user
-router.put("/:id", async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { name, email, password } = req.body as {
-      name?: string;
-      email?: string;
-      password?: string;
-    };
+router.put(
+  "/:id",
+  validate(updateUserSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { name, email, password } = req.body as {
+        name?: string;
+        email?: string;
+        password?: string;
+      };
 
-    if (!name && !email && !password) {
-      return res.status(400).json({ error: "No fields to update" });
+      if (!name && !email && !password) {
+        return res.status(400).json({ error: "No fields to update" });
+      }
+
+      const updates: string[] = [];
+      const values: Record<string, any> = {};
+      const names: Record<string, string> = { "#n": "name" };
+
+      if (name) {
+        updates.push("#n = :name");
+        values[":name"] = name;
+      }
+      if (email) {
+        updates.push("email = :email");
+        values[":email"] = email;
+      }
+
+      let changedPassword = false;
+      if (password) {
+        updates.push("hashedPassword = :pw");
+        values[":pw"] = await bcrypt.hash(password, 10);
+        changedPassword = true;
+      }
+
+      updates.push("id = :id");
+      values[":id"] = id;
+
+      const result = await ddb.send(
+        new UpdateCommand({
+          TableName: table,
+          Key: { pk: `USER#${id}`, sk: "#METADATA" },
+          UpdateExpression: `SET ${updates.join(", ")}`,
+          ExpressionAttributeValues: values,
+          ExpressionAttributeNames: names,
+          ReturnValues: "ALL_NEW",
+        })
+      );
+
+      const { hashedPassword, ...publicUser } = result.Attributes || {};
+      res.json({ message: "User updated", user: publicUser, changedPassword });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: "Could not update user" });
     }
-
-    const updates: string[] = [];
-    const values: Record<string, any> = {};
-    const names: Record<string, string> = { "#n": "name" };
-
-    if (name) {
-      updates.push("#n = :name");
-      values[":name"] = name;
-    }
-    if (email) {
-      updates.push("email = :email");
-      values[":email"] = email;
-    }
-
-    let changedPassword = false;
-    if (password) {
-      updates.push("hashedPassword = :pw");
-      values[":pw"] = await bcrypt.hash(password, 10);
-      changedPassword = true;
-    }
-
-    updates.push("id = :id");
-    values[":id"] = id;
-
-    const result = await ddb.send(
-      new UpdateCommand({
-        TableName: table,
-        Key: { pk: `USER#${id}`, sk: "#METADATA" },
-        UpdateExpression: `SET ${updates.join(", ")}`,
-        ExpressionAttributeValues: values,
-        ExpressionAttributeNames: names,
-        ReturnValues: "ALL_NEW",
-      })
-    );
-
-    const { hashedPassword, ...publicUser } = result.Attributes || {};
-    res.json({ message: "User updated", user: publicUser, changedPassword });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "Could not update user" });
   }
-});
+);
 
 // delete user
-router.delete("/:id", async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
+router.delete(
+  "/:id",
+  validate(idParamSchema, "params"),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
 
-    await ddb.send(
-      new DeleteCommand({
-        TableName: table,
-        Key: {
-          pk: `USER#${id}`,
-          sk: "#METADATA",
-        },
-      })
-    );
+      await ddb.send(
+        new DeleteCommand({
+          TableName: table,
+          Key: {
+            pk: `USER#${id}`,
+            sk: "#METADATA",
+          },
+        })
+      );
 
-    res.json({ message: `User ${id} deleted` });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "Could not delete user" });
+      res.json({ message: `User ${id} deleted` });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: "Could not delete user" });
+    }
   }
-});
+);
 
 export default router;

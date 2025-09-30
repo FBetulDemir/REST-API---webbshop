@@ -1,16 +1,12 @@
 import express, { type Request, type Response } from "express";
-import {
-  DynamoDBClient,
-  PutItemCommand,
-  GetItemCommand,
-  ScanCommand,
-} from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DeleteCommand,
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
   UpdateCommand,
+  ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
@@ -33,6 +29,7 @@ export interface User {
   type: "user";
 }
 
+// get all users
 router.get("/", async (req: Request, res: Response) => {
   try {
     const result = await ddb.send(new ScanCommand({ TableName: table }));
@@ -45,6 +42,7 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
+// get user by id
 router.get("/:id", async (req, res) => {
   try {
     const result = await ddb.send(
@@ -117,6 +115,7 @@ router.post("/login", async (req: Request, res: Response) => {
   res.json({ message: "Login successful", token });
 });
 
+// update user
 router.put("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -169,6 +168,28 @@ router.put("/:id", async (req: Request, res: Response) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Could not update user" });
+  }
+});
+
+// delete user
+router.delete("/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    await ddb.send(
+      new DeleteCommand({
+        TableName: table,
+        Key: {
+          pk: `USER#${id}`,
+          sk: "#METADATA",
+        },
+      })
+    );
+
+    res.json({ message: `User ${id} deleted` });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Could not delete user" });
   }
 });
 

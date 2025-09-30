@@ -18,3 +18,9 @@ export const createProductSchema=z.object({
   amountInStock: z.number().nonnegative("Stock cannot be negative"),
   type: z.string().min(1, "Product type is required")
 })
+export const editschema=z.object({
+	 name: z.string().min(1, "Product name is required"),
+  price: z.number().positive("Price must be positive"),
+ image: z.string().url("Invalid image URL"),
+  amountInStock: z.number().nonnegative("Stock cannot be negative"),
+})

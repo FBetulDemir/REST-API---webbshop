@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { ddbDocClient, TABLE_NAME } from '../data/dynamoDb.js';
 import { GetCommand, PutCommand, DeleteCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import type { Cart, CreateCartRequest, UpdateCartRequest, CartResponse } from '../data/types.js';
-import { createCartSchema } from '../schemas/cartSchemas.js';
+import { createCartSchema, updateCartSchema } from '../schemas/cartSchemas.js';
 
 const router = Router();
 
@@ -155,7 +155,10 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { amount }: UpdateCartRequest = req.body;
+    
+    // Validera inkommande data
+    const validatedData = updateCartSchema.parse(req.body);
+    const { amount } = validatedData;
     
     const cartId = `CART#${id}`;
     
@@ -204,8 +207,22 @@ router.put('/:id', async (req, res) => {
       success: true,
       data: cartResponse
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating cart:', error);
+    
+    // Hantera valideringsfel
+    if (error.name === 'ZodError') {
+      const errorDetails = error.issues || error.errors || [];
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errorDetails,
+        message: errorDetails.length > 0 
+          ? errorDetails.map((err: any) => err.message).join(', ')
+          : 'Invalid input data'
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: 'Failed to update cart'
@@ -219,7 +236,8 @@ router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     const cartId = `CART#${id}`;
     
-    const command = new DeleteCommand({
+    // Kontrollera om cart finns först
+    const getCommand = new GetCommand({
       TableName: TABLE_NAME,
       Key: {
         pk: cartId,
@@ -227,13 +245,31 @@ router.delete('/:id', async (req, res) => {
       }
     });
     
-    await ddbDocClient.send(command);
+    const existingCart = await ddbDocClient.send(getCommand);
+    
+    if (!existingCart.Item) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cart not found'
+      });
+    }
+    
+    // Ta bort cart om den finns
+    const deleteCommand = new DeleteCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        pk: cartId,
+        sk: '#METADATA'
+      }
+    });
+    
+    await ddbDocClient.send(deleteCommand);
     
     res.json({
       success: true,
       message: 'Cart deleted successfully'
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting cart:', error);
     res.status(500).json({
       success: false,

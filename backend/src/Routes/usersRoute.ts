@@ -120,8 +120,13 @@ router.put("/:id", async (req: Request, res: Response) => {
       password?: string;
     };
 
+    if (!name && !email && !password) {
+      return res.status(400).json({ error: "No fields to update" });
+    }
+
     const updates: string[] = [];
     const values: Record<string, any> = {};
+    const names: Record<string, string> = { "#n": "name" };
 
     if (name) {
       updates.push("#n = :name");
@@ -131,17 +136,30 @@ router.put("/:id", async (req: Request, res: Response) => {
       updates.push("email = :email");
       values[":email"] = email;
     }
+
+    let changedPassword = false;
     if (password) {
       updates.push("hashedPassword = :pw");
       values[":pw"] = await bcrypt.hash(password, 10);
+      changedPassword = true;
     }
+
+    updates.push("id = :id");
+    values[":id"] = id;
 
     const result = await ddb.send(
       new UpdateCommand({
         TableName: table,
         Key: { pk: `USER#${id}`, sk: "#METADATA" },
+        UpdateExpression: `SET ${updates.join(", ")}`,
+        ExpressionAttributeValues: values,
+        ExpressionAttributeNames: names,
+        ReturnValues: "ALL_NEW",
       })
     );
+
+    const { hashedPassword, ...publicUser } = result.Attributes || {};
+    res.json({ message: "User updated", user: publicUser, changedPassword });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Could not update user" });

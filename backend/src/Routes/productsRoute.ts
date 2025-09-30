@@ -137,40 +137,42 @@ router.delete("/:productId",async(req: Request<ProductIdParam>, res: Response<Me
 router.put("/:productId", async (req: Request<ProductIdParam>, res: Response) => { 
 	const { productId } = req.params;
 	
-    try {
-      const validatedData = editschema.parse(req.body);
-      const { name, price, image, amountInStock } = validatedData;
-
-      await ddbDocClient.send(
-        new UpdateCommand({
-          TableName: myTable,
-          Key: {
-            pk: `PRODUCT#${productId}`,
-            sk: "#METADATA",
-          },
-          UpdateExpression:
-            "SET #n = :name, price = :price, image = :image, amountInStock = :amountInStock",
-			
-          ExpressionAttributeValues: {
-            ":name": name,
-            ":price": price,
-            ":image": image,
-            ":amountInStock": amountInStock,
-          },
-          ReturnValues: "ALL_NEW",
-        })
-      );
-
-      res.status(200).json({ message: "Product updated successfully" });
-    } catch (error: any) {
-      if (error?.errors) {
-        return res.status(400).json({ message: "Validation failed" });
-      }
-      console.error(error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  })
-	
-
-	export default router;
+	try {
+		const validatedData = editschema.parse(req.body);
+		const { name, price, image, amountInStock } = validatedData;
 		
+		await ddbDocClient.send(
+			new UpdateCommand({
+				TableName: myTable,
+				Key: {
+					pk: `PRODUCT#${productId}`,
+					sk: "#METADATA",
+				},
+				UpdateExpression:
+				"SET #n = :name, price = :price, image = :image, amountInStock = :amountInStock",
+				ExpressionAttributeNames: {
+					"#n": "name"    
+				},
+				
+				ExpressionAttributeValues: {
+					":name": name,
+					":price": price,
+					":image": image,
+					":amountInStock": amountInStock,
+				},
+				ReturnValues: "ALL_NEW",
+			})
+		);
+		
+		res.status(200).json({ message: "Product updated successfully" });
+	} catch (error: any) {
+		if (error?.errors) {
+			return res.status(400).json({ message: "Validation failed" });
+		}
+		console.error(error);
+		res.status(500).json({ message: "Internal server error" });
+	}
+})
+
+
+export default router;

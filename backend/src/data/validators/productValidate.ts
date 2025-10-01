@@ -11,7 +11,8 @@ import z from "zod"
 export const productsArraySchema = z.array(productSchema);
 
 
-export const createProductSchema=z.object({
+export const PartialProductSchema=z.object({
+	
 	 name: z.string().min(1, "Product name is required"),
   price: z.number().positive("Price must be positive"),
  image: z.string().url("Invalid image URL"),

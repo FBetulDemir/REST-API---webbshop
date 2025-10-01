@@ -110,19 +110,17 @@ router.post(
   validate(loginSchema),
   async (req: Request, res: Response) => {
     const { name, password } = req.body;
-    if (!name || !password)
-      return res.status(400).json({ error: "name and password required" });
 
     const result = await ddb.send(new ScanCommand({ TableName: table }));
+
     const user = (result.Items || []).find(
-      (u) => u.type?.S === "user" && u.name?.S === name
+      (u) => u.type === "user" && u.name === name
     );
 
-    if (!user) return res.status(401).json({ error: "Invalid credentials" });
-    const hashedPassword = user.hashedPassword?.S;
-    if (!hashedPassword)
+    if (!user?.hashedPassword)
       return res.status(401).json({ error: "Invalid credentials" });
-    const ok = await bcrypt.compare(password, hashedPassword);
+
+    const ok = await bcrypt.compare(password, user.hashedPassword);
     if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
     const token = jwt.sign({ id: user.id, name: user.name }, JWT_SECRET);

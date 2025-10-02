@@ -1,0 +1,35 @@
+.title{
+	margin: 30px;
+}
+.div-product{
+	
+	padding: 30px;
+	margin: 80px;
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	border-radius: 15px;
+
+}
+
+.div-product img{
+	width: 80%;
+	border-radius: 7%;
+}
+.div-column{
+	display: flex;
+	flex-direction: column;
+	
+}
+.div-column>*{
+
+	margin: 10px;
+}
+.product-button{
+	display: flex;
+	flex-direction: column;
+}
+.product-button>*{
+	padding: 10px;
+	margin: 10px;
+	
+}

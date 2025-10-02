@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import "./product.css"
+import Header from "../../components/Header";
 function Product(){
 	const [data,setData]=useState<ProductType[]>([])
 	
@@ -33,7 +34,8 @@ function Product(){
 	
 	return(
 		<div className="product-container">
-		<h1 className="title">PRODUCTS</h1>
+			<Header></Header>
+		<h1 className="title">Produkter</h1>
 		<div className="container">
 		{data && data.map(item=>(
 			<div key={item.pk} className="div-product">
@@ -42,15 +44,15 @@ function Product(){
 			
 			</div>
 			<div className="div-column">
-			<h2>Name: {item.name}</h2>
-			<p>Price:{item.price}</p>
+			<h2>Namn: {item.name}</h2>
+			<p>Pris: {item.price}</p>
 			
-			<p>Available Stock:{item.amountInStock}</p>
+			<p>Tillgängligt lager: {item.amountInStock}</p>
 			</div>
 			<div className="product-button">
-			<button>Add to order</button>
-			<button>Edit</button>
-			<button>Delete</button>
+			<button>Lägg i kundvagn</button>
+			<button>Redigera</button>
+			<button>Tabort</button>
 			</div>
 			
 			

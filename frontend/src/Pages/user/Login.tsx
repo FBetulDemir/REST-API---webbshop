@@ -12,7 +12,7 @@ const Login = () => {
     e.preventDefault();
     setError(null);
     try {
-      const response = await fetch(`http://localhost:${port}/api/users/login`, {
+      const response = await fetch("/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, password }),
@@ -21,8 +21,9 @@ const Login = () => {
       if (!response.ok) {
         throw new Error(data.error || "Login failed");
       }
+      console.log("Login attempt:", name);
 
-      navigate("/home");
+      navigate("/");
     } catch (err: any) {
       setError(err.message);
     }

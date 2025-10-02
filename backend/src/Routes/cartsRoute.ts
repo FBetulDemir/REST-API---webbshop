@@ -1,13 +1,18 @@
 import { Router } from 'express';
+import type { Request, Response } from 'express';
 import { ddbDocClient, TABLE_NAME } from '../data/dynamoDb.js';
 import { GetCommand, PutCommand, DeleteCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import type { Cart, CreateCartRequest, UpdateCartRequest, CartResponse } from '../data/types.js';
+
+
+type CartItem = CartResponse;
+type ErrorMessage = { error: string };
 import { createCartSchema, updateCartSchema } from '../schemas/cartSchemas.js';
 
 const router = Router();
 
 // GET /api/cart - Hämta alla cart-objekt
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request, res: Response<CartItem[] | ErrorMessage>) => {
   try {
     const command = new ScanCommand({
       TableName: TABLE_NAME,
@@ -31,22 +36,15 @@ router.get('/', async (req, res) => {
       type: 'cart' as const
     })) || [];
     
-    res.json({
-      success: true,
-      data: carts,
-      count: carts.length
-    });
+    res.status(200).send(carts);
   } catch (error) {
     console.error('Error fetching carts:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch carts'
-    });
+    res.status(500).send({ error: 'Failed to fetch carts' });
   }
 });
 
 // GET /api/cart/:id - Hämta specifikt cart-objekt
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: Request<{id: string}>, res: Response<CartItem | ErrorMessage>) => {
   try {
     const { id } = req.params;
     const cartId = `CART#${id}`;
@@ -62,10 +60,7 @@ router.get('/:id', async (req, res) => {
     const result = await ddbDocClient.send(command);
     
     if (!result.Item) {
-      return res.status(404).json({
-        success: false,
-        error: 'Cart not found'
-      });
+      return res.status(404).send({ error: 'Cart not found' });
     }
     
     const cartResponse: CartResponse = {
@@ -76,21 +71,15 @@ router.get('/:id', async (req, res) => {
       type: 'cart'
     };
     
-    res.json({
-      success: true,
-      data: cartResponse
-    });
+    res.status(200).send(cartResponse);
   } catch (error) {
     console.error('Error fetching cart:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch cart'
-    });
+    res.status(500).send({ error: 'Failed to fetch cart' });
   }
 });
 
 // POST /api/cart - Skapa nytt cart-objekt
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request<{}, CartItem | ErrorMessage, CreateCartRequest>, res: Response<CartItem | ErrorMessage>) => {
   try {
     // Validera inkommande data
     const validatedData = createCartSchema.parse(req.body);
@@ -124,35 +113,26 @@ router.post('/', async (req, res) => {
       type: 'cart'
     };
     
-    res.status(201).json({
-      success: true,
-      data: cartResponse
-    });
+    res.status(201).send(cartResponse);
   } catch (error: any) {
     console.error('Error creating cart:', error);
     
     // Hantera valideringsfel
     if (error.name === 'ZodError') {
       const errorDetails = error.issues || error.errors || [];
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: errorDetails,
-        message: errorDetails.length > 0 
+      return res.status(400).send({ 
+        error: errorDetails.length > 0 
           ? errorDetails.map((err: any) => err.message).join(', ')
           : 'Invalid input data'
       });
     }
     
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create cart'
-    });
+    res.status(500).send({ error: 'Failed to create cart' });
   }
 });
 
 // PUT /api/cart/:id - Uppdatera cart-objekt
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req: Request<{id: string}, CartItem | ErrorMessage, UpdateCartRequest>, res: Response<CartItem | ErrorMessage>) => {
   try {
     const { id } = req.params;
     
@@ -174,10 +154,7 @@ router.put('/:id', async (req, res) => {
     const existingCart = await ddbDocClient.send(getCommand);
     
     if (!existingCart.Item) {
-      return res.status(404).json({
-        success: false,
-        error: 'Cart not found'
-      });
+      return res.status(404).send({ error: 'Cart not found' });
     }
     
     // Uppdatera med befintliga värden
@@ -203,35 +180,26 @@ router.put('/:id', async (req, res) => {
       type: 'cart'
     };
     
-    res.json({
-      success: true,
-      data: cartResponse
-    });
+    res.status(200).send(cartResponse);
   } catch (error: any) {
     console.error('Error updating cart:', error);
     
     // Hantera valideringsfel
     if (error.name === 'ZodError') {
       const errorDetails = error.issues || error.errors || [];
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: errorDetails,
-        message: errorDetails.length > 0 
+      return res.status(400).send({ 
+        error: errorDetails.length > 0 
           ? errorDetails.map((err: any) => err.message).join(', ')
           : 'Invalid input data'
       });
     }
     
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update cart'
-    });
+    res.status(500).send({ error: 'Failed to update cart' });
   }
 });
 
 // DELETE /api/cart/:id - Ta bort cart-objekt
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req: Request<{id: string}>, res: Response<{message: string} | ErrorMessage>) => {
   try {
     const { id } = req.params;
     const cartId = `CART#${id}`;
@@ -248,10 +216,7 @@ router.delete('/:id', async (req, res) => {
     const existingCart = await ddbDocClient.send(getCommand);
     
     if (!existingCart.Item) {
-      return res.status(404).json({
-        success: false,
-        error: 'Cart not found'
-      });
+      return res.status(404).send({ error: 'Cart not found' });
     }
     
     // Ta bort cart om den finns
@@ -265,16 +230,10 @@ router.delete('/:id', async (req, res) => {
     
     await ddbDocClient.send(deleteCommand);
     
-    res.json({
-      success: true,
-      message: 'Cart deleted successfully'
-    });
+    res.status(200).send({ message: 'Cart deleted successfully' });
   } catch (error: any) {
     console.error('Error deleting cart:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to delete cart'
-    });
+    res.status(500).send({ error: 'Failed to delete cart' });
   }
 });
 

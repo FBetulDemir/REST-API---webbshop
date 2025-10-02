@@ -1,0 +1,45 @@
+.title{
+	margin: 30px;
+}
+
+
+.div-product{
+	background-color: rgb(255, 223, 182);
+	padding: 30px;
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+
+}
+.div-img{
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.div-product img{
+	width: 80%;
+	border-radius: 7%;
+}
+.div-column{
+	display: flex;
+	flex-direction: column;
+	
+}
+.div-column>*{
+
+	margin: 10px;
+}
+.product-button{
+	display: flex;
+	flex-direction: column;
+}
+.product-button>*{
+	border: 2px solid rgb(220, 195, 58);
+	padding: 10px;
+	margin: 10px;
+	
+}
+.product-button :hover{
+	background-color: rgb(235, 189, 129);
+	cursor: pointer;
+
+}

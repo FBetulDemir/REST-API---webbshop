@@ -1,7 +1,7 @@
 
 import { HashRouter,Routes,Route } from "react-router-dom"
 import Home from "./Pages/Home/Home"
-import Product from "./Pages/product/product"
+import Product from "./Pages/product/Product"
 import Cart from "./Pages/cart/cart"
 import User from "./Pages/user/user"
 function App() {

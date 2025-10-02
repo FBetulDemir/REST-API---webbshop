@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const port = 3000;
 const Login = () => {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");

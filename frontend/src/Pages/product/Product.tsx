@@ -37,7 +37,7 @@ function Product(){
 		<div className="container">
 		{data && data.map(item=>(
 			<div key={item.pk} className="div-product">
-			<div>
+			<div className="div-img">
 			<img src={item.image} alt="image-ptoduct" />
 			
 			</div>

@@ -30,7 +30,21 @@ function Product(){
 		getData()
 		
 	},[])
-	
+	async function deleteHandler(productId:string){
+		const response= await fetch (`http://localhost:3000/products/${productId}`,{
+			method: "DELETE"
+
+		})
+		if(!response.ok){
+			console.log("can not delete data from database")
+			return
+		}
+		const result=await response.json()
+		console.log(result)
+		getData()
+
+
+	}
 	
 	return(
 		<div className="product-container">
@@ -52,7 +66,7 @@ function Product(){
 			<div className="product-button">
 			<button>Lägg i kundvagn</button>
 			<button>Redigera</button>
-			<button>Tabort</button>
+			<button onClick={() => deleteHandler(item.pk.replace("PRODUCT#", ""))}>Tabort</button>
 			</div>
 			
 			

@@ -1,5 +1,6 @@
 import type React from "react";
 import { useState } from "react";
+import "./Register.css";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -25,17 +26,17 @@ const Register = () => {
 
       const data = await response.json();
 
-      setSuccess(`User created! ID: ${data.userId}`);
-      console.log(`User created! ID: ${data.userId}`);
+      setSuccess(`User created!`);
+      console.log(`User created! Name: ${data.name}`);
       setName("");
       setEmail("");
       setPassword("");
     } catch (error) {
-      setError((error as Error).message);
+      setError(`User could not be created ${error}`);
     }
   };
   return (
-    <div>
+    <div className="register-container">
       <h2>Registrera</h2>
       <form onSubmit={handleSubmit}>
         <div>
@@ -68,7 +69,9 @@ const Register = () => {
         </div>
         {error && <div style={{ color: "red" }}>{error}</div>}
         {success && <p style={{ color: "green" }}>{success}</p>}
-        <button type="submit">Registrera</button>
+        <button className="register-btn" type="submit">
+          Registrera
+        </button>
       </form>
     </div>
   );

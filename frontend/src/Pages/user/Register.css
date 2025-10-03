@@ -27,7 +27,7 @@ h2 {
   font-size: 30px;
 }
 
-.login-container {
+.register-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -46,7 +46,7 @@ h2 {
   }
 }
 
-.login-container * {
+.register-container * {
   padding: 0.5em 0;
 }
 
@@ -56,7 +56,7 @@ input:focus {
   box-shadow: 0 0 5px rgba(212, 175, 55, 0.6);
 }
 
-.login-btn {
+.register-btn {
   display: block;
   margin: 1em auto 0;
   background-color: var(--color-accent);
@@ -67,9 +67,10 @@ input:focus {
   border-radius: 5px;
   cursor: pointer;
   margin-top: 1em;
+  text-align: center;
 }
 
-.login-btn:hover {
+.register-btn:hover {
   background-color: #967405;
   transition: 0.3s ease;
 }

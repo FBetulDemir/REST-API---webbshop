@@ -26,6 +26,7 @@ const Register = () => {
       const data = await response.json();
 
       setSuccess(`User created! ID: ${data.userId}`);
+      console.log(`User created! ID: ${data.userId}`);
       setName("");
       setEmail("");
       setPassword("");

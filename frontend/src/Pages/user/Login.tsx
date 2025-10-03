@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./Login.css";
 
 const Login = () => {
   const [name, setName] = useState("");
@@ -28,11 +29,12 @@ const Login = () => {
     }
   };
   return (
-    <div>
+    <div className="login-container">
       <h2>Login</h2>
+      <p>Logga in för att kunna köpa!</p>
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Name:</label>
+          <label>Namn:</label>
           <input
             type="text"
             value={name}
@@ -41,7 +43,7 @@ const Login = () => {
           />
         </div>
         <div>
-          <label>Password:</label>
+          <label>Lösenord:</label>
           <input
             type="password"
             value={password}
@@ -50,7 +52,9 @@ const Login = () => {
           />
         </div>
         {error && <div style={{ color: "red" }}>{error}</div>}
-        <button type="submit">Login</button>
+        <button className="login-btn" type="submit">
+          Login
+        </button>
       </form>
     </div>
   );

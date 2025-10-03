@@ -3,6 +3,7 @@ import "./product.css"
 import Header from "../../components/Header";
 function Product(){
 	const [data,setData]=useState<ProductType[]>([])
+	 const [editId, setEditId] = useState<string | null>(null);
 	
 	interface ProductType {
 		pk: string; 
@@ -33,7 +34,7 @@ function Product(){
 	async function deleteHandler(productId:string){
 		const response= await fetch (`http://localhost:3000/products/${productId}`,{
 			method: "DELETE"
-
+			
 		})
 		if(!response.ok){
 			console.log("can not delete data from database")
@@ -42,13 +43,20 @@ function Product(){
 		const result=await response.json()
 		console.log(result)
 		getData()
-
-
+		
+		
+	}
+	function openEditHandler(productId:string){
+		setEditId(productId)
+		
+	}
+	function closeHandler(){
+		setEditId(null)
 	}
 	
 	return(
 		<div className="product-container">
-			<Header></Header>
+		<Header></Header>
 		<h1 className="title">Produkter</h1>
 		<div className="container">
 		{data && data.map(item=>(
@@ -65,8 +73,29 @@ function Product(){
 			</div>
 			<div className="product-button">
 			<button>Lägg i kundvagn</button>
-			<button>Redigera</button>
+			<button onClick={()=>openEditHandler(item.pk)}>Redigera</button>
 			<button onClick={() => deleteHandler(item.pk.replace("PRODUCT#", ""))}>Tabort</button>
+			</div>
+			<div>
+				{editId == item.pk && (
+				<div className="div-edit">
+				<div>
+				<label htmlFor="name">Namn: </label>
+				<input type="text" id="name" />
+				</div>
+				<div>
+				<label htmlFor="price">Pris: </label>
+				<input type="text" id="price" />
+				</div>
+				<div>
+				<label htmlFor="available">Tillgängligt: </label>
+				<input type="text" id="available" />
+				</div>
+				<button>Spara</button>
+				<button onClick={closeHandler}>Stäng</button>
+				
+				</div>
+			)}
 			</div>
 			
 			

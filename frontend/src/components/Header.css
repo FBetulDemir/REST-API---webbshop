@@ -1,0 +1,21 @@
+.container-header{
+	padding: 30px;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+}
+.container-header img{
+	width: 30%;
+	border-radius: 100%;
+}
+.nav a{
+	font-size: 25px;
+	text-decoration: none;
+	color: black;
+	margin: 30px;
+	padding: 20px;
+	
+}
+.nav a:hover{
+	background-color:rgb(235, 174, 94) ;
+	border-radius: 7px;
+}

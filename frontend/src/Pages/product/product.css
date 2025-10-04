@@ -4,7 +4,6 @@
 
 
 .div-product{
-	background-color: rgb(255, 223, 182);
 	padding: 30px;
 	display: grid;
 	grid-template-columns: 1fr 1fr 1fr;
@@ -33,13 +32,47 @@
 	flex-direction: column;
 }
 .product-button>*{
-	border: 2px solid rgb(220, 195, 58);
+	border: 2px solid rgb(138, 120, 18);
 	padding: 10px;
 	margin: 10px;
 	
 }
 .product-button :hover{
-	background-color: rgb(235, 189, 129);
+	background-color: rgb(235, 174, 94);
 	cursor: pointer;
+
+}
+@media screen and (max-width:700px){
+.div-product{
+	
+	grid-template-columns: 1fr ;
+
+}
+.product-button{
+	flex-direction: row;
+}
+}
+
+.div-edit div{
+	margin: 15px;
+	padding: 10px;
+	display: flex;
+}
+.div-edit div input{
+	padding: 10px;
+	
+}
+.div-edit div label{
+	margin-right: 20px;
+}
+.div-edit button{
+	margin: 10px;
+	padding: 10px;
+	border-radius: 5px;
+}
+.div-edit button:hover{
+	background-color: rgb(235, 174, 94);
+	cursor: pointer;
+
 
 }

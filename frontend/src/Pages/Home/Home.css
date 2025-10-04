@@ -1,0 +1,45 @@
+h2{
+	margin: 30px;
+}
+.image-Home{
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-radius: 10px;
+	margin-bottom: 40px;
+}
+.image-Home img{
+	border-radius: 30px;
+	box-shadow: 30px 10px 10px rgba(158, 107, 39, 0.5);
+}
+.image-Home a{
+	margin-top: 30px;
+	text-decoration: none;
+	color: black;
+	font-size: 30px;
+}
+
+.image-Home a:hover{
+	background-color:rgb(235, 174, 94) ;
+	border-radius: 7px;
+	padding: 10px;
+}
+@media screen and (max-width:960px) {
+
+	.image-Home{
+		flex-direction: column;
+	}
+	.image-Home img{
+	width: 80%;
+}
+.container-header img {
+	width: 60%;
+}
+.nav{
+	display: flex;
+	flex-direction: column;
+}
+.nav a{
+	margin: 0;
+}
+}

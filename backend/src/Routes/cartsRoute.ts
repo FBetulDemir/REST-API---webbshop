@@ -11,7 +11,7 @@ interface AuthenticatedRequest extends Request {
 import { ddbDocClient, TABLE_NAME } from '../data/dynamoDb.js';
 import { GetCommand, PutCommand, DeleteCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import type { Cart, CreateCartRequest, UpdateCartRequest, CartResponse } from '../data/types.js';
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
 dotenv.config();

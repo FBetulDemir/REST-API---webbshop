@@ -11,7 +11,6 @@ export interface Cart {
 }
 
 export interface CreateCartRequest {
-  userId: string;
   productId: string;
   amount: number;
 }

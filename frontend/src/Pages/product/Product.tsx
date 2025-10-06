@@ -56,7 +56,6 @@ function Product(){
 	
 	return(
 		<div className="product-container">
-		<Header></Header>
 		<h1 className="title">Produkter</h1>
 		<div className="container">
 		{data && data.map(item=>(

@@ -11,6 +11,39 @@ import { createCartSchema, updateCartSchema } from '../schemas/cartSchemas.js';
 
 const router = Router();
 
+// Helper function to validate user exists
+const validateUser = async (userId: string): Promise<boolean> => {
+  try {
+    const userCommand = new GetCommand({
+      TableName: TABLE_NAME,
+      Key: { pk: `USER#${userId}`, sk: '#METADATA' }
+    });
+    const userResult = await ddbDocClient.send(userCommand);
+    return userResult.Item ? true : false;
+  } catch (error) {
+    console.error('Error validating user:', error);
+    return false;
+  }
+};
+
+// Helper function to get user info
+const getUserInfo = async (userId: string) => {
+  try {
+    const userCommand = new GetCommand({
+      TableName: TABLE_NAME,
+      Key: { pk: `USER#${userId}`, sk: '#METADATA' }
+    });
+    const userResult = await ddbDocClient.send(userCommand);
+    return userResult.Item ? { 
+      name: userResult.Item.name, 
+      email: userResult.Item.email 
+    } : null;
+  } catch (error) {
+    console.error('Error getting user info:', error);
+    return null;
+  }
+};
+
 // GET /api/cart - Hämta alla cart-objekt
 router.get('/', async (req: Request, res: Response<CartItem[] | ErrorMessage>) => {
   try {
@@ -27,7 +60,7 @@ router.get('/', async (req: Request, res: Response<CartItem[] | ErrorMessage>) =
     
     const result = await ddbDocClient.send(command);
     
-    // Konvertera till CartResponse format
+    // Konvertera till CartResponse format med user-info
     const carts: CartResponse[] = result.Items?.map(item => ({
       id: item.pk?.replace('CART#', '') || '',
       userId: item.userId || '',
@@ -36,7 +69,15 @@ router.get('/', async (req: Request, res: Response<CartItem[] | ErrorMessage>) =
       type: 'cart' as const
     })) || [];
     
-    res.status(200).send(carts);
+    // Lägg till user-info för varje cart
+    const cartsWithUsers = await Promise.all(
+      carts.map(async cart => ({
+        ...cart,
+        user: await getUserInfo(cart.userId)
+      }))
+    );
+    
+    res.status(200).send(cartsWithUsers);
   } catch (error) {
     console.error('Error fetching carts:', error);
     res.status(500).send({ error: 'Failed to fetch carts' });
@@ -84,6 +125,12 @@ router.post('/', async (req: Request<{}, CartItem | ErrorMessage, CreateCartRequ
     // Validera inkommande data
     const validatedData = createCartSchema.parse(req.body);
     const { userId, productId, amount } = validatedData;
+    
+    // Validera att användaren finns
+    const userExists = await validateUser(userId);
+    if (!userExists) {
+      return res.status(404).send({ error: 'User not found' });
+    }
     
     // Kolla om produkten redan finns i användarens varukorg
     const scanCommand = new ScanCommand({
@@ -196,6 +243,12 @@ router.put('/:id', async (req: Request<{id: string}, CartItem | ErrorMessage, Up
       return res.status(404).send({ error: 'Cart not found' });
     }
     
+    // Validera att användaren fortfarande finns
+    const userExists = await validateUser(existingCart.Item.userId);
+    if (!userExists) {
+      return res.status(404).send({ error: 'User not found' });
+    }
+    
     // Uppdatera med befintliga värden
     const command = new PutCommand({
       TableName: TABLE_NAME,
@@ -250,6 +303,12 @@ router.delete('/:id', async (req: Request<{id: string}>, res: Response<{message:
     
     if (!existingCart.Item) {
       return res.status(404).send({ error: 'Cart not found' });
+    }
+    
+    // Validera att användaren fortfarande finns
+    const userExists = await validateUser(existingCart.Item.userId);
+    if (!userExists) {
+      return res.status(404).send({ error: 'User not found' });
     }
     
     // Ta bort cart om den finns

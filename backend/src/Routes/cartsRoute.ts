@@ -117,14 +117,8 @@ router.post('/', async (req: Request<{}, CartItem | ErrorMessage, CreateCartRequ
   } catch (error: any) {
     console.error('Error creating cart:', error);
     
-    // Hantera valideringsfel
     if (error.name === 'ZodError') {
-      const errorDetails = error.issues || error.errors || [];
-      return res.status(400).send({ 
-        error: errorDetails.length > 0 
-          ? errorDetails.map((err: any) => err.message).join(', ')
-          : 'Invalid input data'
-      });
+      return res.status(400).send({ error: 'Invalid data provided' });
     }
     
     res.status(500).send({ error: 'Failed to create cart' });
@@ -184,14 +178,8 @@ router.put('/:id', async (req: Request<{id: string}, CartItem | ErrorMessage, Up
   } catch (error: any) {
     console.error('Error updating cart:', error);
     
-    // Hantera valideringsfel
     if (error.name === 'ZodError') {
-      const errorDetails = error.issues || error.errors || [];
-      return res.status(400).send({ 
-        error: errorDetails.length > 0 
-          ? errorDetails.map((err: any) => err.message).join(', ')
-          : 'Invalid input data'
-      });
+      return res.status(400).send({ error: 'Invalid data provided' });
     }
     
     res.status(500).send({ error: 'Failed to update cart' });

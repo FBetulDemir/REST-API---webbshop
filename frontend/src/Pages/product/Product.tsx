@@ -119,6 +119,7 @@ function Product(){
 			headers: {
 				"Content-Type": "application/json",
 			},
+			credentials: 'include', // Inkludera session cookies
 			body: JSON.stringify(newCartItem)
 		})
 		

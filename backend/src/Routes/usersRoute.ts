@@ -1,4 +1,10 @@
 import express, { type Request, type Response } from "express";
+
+// Session interface
+interface SessionData {
+  userId?: string;
+  userName?: string;
+}
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DeleteCommand,
@@ -125,16 +131,13 @@ router.post(
 
     const token = jwt.sign({ id: user.id, name: user.name }, JWT_SECRET);
 
-    // Spara login-aktivitet för backend-styrning
-    const loginRecord = {
-      pk: `LOGIN#${Date.now()}`,
-      sk: '#METADATA',
-      type: 'login',
-      userId: user.id,
-      userName: user.name,
-      timestamp: new Date().toISOString()
-    };
-    await ddb.send(new PutCommand({ TableName: table, Item: loginRecord }));
+    // Spara i session för backend-styrning
+    const session = req.session as SessionData;
+    if (!session) {
+      (req as any).session = {};
+    }
+    (req as any).session.userId = user.id;
+    (req as any).session.userName = user.name;
 
     res.json({ 
       message: "Login successful", 

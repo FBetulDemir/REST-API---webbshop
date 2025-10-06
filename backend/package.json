@@ -15,10 +15,12 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.895.0",
     "@aws-sdk/lib-dynamodb": "^3.895.0",
+    "@types/express-session": "^1.18.2",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "express-session": "^1.18.2",
     "jsonwebtoken": "^9.0.2",
     "zod": "^4.1.11"
   },

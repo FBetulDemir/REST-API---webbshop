@@ -6,9 +6,11 @@ function Cart(){
 	const [products, setProducts] = useState([])
 
 	async function getData(){
-		// Backend styr allt - ingen userId behövs
+		// Backend styr allt via session
 		const [cartResponse, productsResponse] = await Promise.all([
-			fetch("http://localhost:3000/api/cart"),
+			fetch("http://localhost:3000/api/cart", {
+				credentials: 'include' // Inkludera session cookies
+			}),
 			fetch("http://localhost:3000/products")
 		])
 
@@ -44,7 +46,8 @@ function Cart(){
 
 	async function deleteHandler(cartId){
 		const response = await fetch(`http://localhost:3000/api/cart/${cartId}`, {
-			method: "DELETE"
+			method: "DELETE",
+			credentials: 'include' // Inkludera session cookies
 		})
 		if(!response.ok){
 			console.log("can not delete data from database")
@@ -63,6 +66,7 @@ function Cart(){
 			headers: {
 				"Content-Type": "application/json",
 			},
+			credentials: 'include', // Inkludera session cookies
 			body: JSON.stringify({ amount: newAmount })
 		})
 		if(!response.ok){

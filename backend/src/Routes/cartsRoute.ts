@@ -1,5 +1,11 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
+
+// Session interface
+interface SessionData {
+  userId?: string;
+  userName?: string;
+}
 import { ddbDocClient, TABLE_NAME } from '../data/dynamoDb.js';
 import { GetCommand, PutCommand, DeleteCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import type { Cart, CreateCartRequest, UpdateCartRequest, CartResponse } from '../data/types.js';
@@ -44,35 +50,17 @@ const getUserInfo = async (userId: string) => {
   }
 };
 
-// Helper function to get current logged-in user
-const getCurrentUser = async (): Promise<string | null> => {
-  try {
-    const loginCommand = new ScanCommand({
-      TableName: TABLE_NAME,
-      FilterExpression: '#type = :loginType',
-      ExpressionAttributeNames: { '#type': 'type' },
-      ExpressionAttributeValues: { ':loginType': 'login' }
-    });
-    const result = await ddbDocClient.send(loginCommand);
-    
-    // Hämta senaste login (högsta timestamp)
-    const logins = result.Items || [];
-    const latestLogin = logins.sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    )[0];
-    
-    return latestLogin?.userId || null;
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    return null;
-  }
+// Helper function to get current logged-in user from session
+const getCurrentUser = (req: Request): string | null => {
+  const session = req.session as SessionData;
+  return session?.userId || null;
 };
 
 // GET /api/cart - Hämta alla cart-objekt
 router.get('/', async (req: Request, res: Response<CartItem[] | ErrorMessage>) => {
   try {
-    // Backend styr - hämta senaste inloggade användare
-    const userId = await getCurrentUser();
+    // Backend styr - hämta användare från session
+    const userId = getCurrentUser(req);
     if (!userId) {
       return res.status(401).send({ error: 'No active user found' });
     }
@@ -154,8 +142,8 @@ router.get('/:id', async (req: Request<{id: string}>, res: Response<CartItem | E
 // POST /api/cart - Skapa nytt cart-objekt eller uppdatera befintligt
 router.post('/', async (req: Request<{}, CartItem | ErrorMessage, CreateCartRequest>, res: Response<CartItem | ErrorMessage>) => {
   try {
-    // Backend styr - hämta senaste inloggade användare
-    const userId = await getCurrentUser();
+    // Backend styr - hämta användare från session
+    const userId = getCurrentUser(req);
     if (!userId) {
       return res.status(401).send({ error: 'No active user found' });
     }

@@ -20,6 +20,14 @@ interface ProductResponse extends Product {}
 interface MessageResponse {
 	message: string;
 }
+interface CreateProductBody {
+  id: number;
+  name: string;
+  price: number;
+  image?: string;
+  amountInStock?: number;
+  description?: string;
+}
 //lista alla produkter
 router.get("/", async (req, res: Response<MessageResponse | Product[]>) => {
 	const params = {
@@ -74,7 +82,7 @@ router.get("/:productId", async (req: Request<ProductIdParam>, res: Response<Pro
 
 
 //skapa produkt
-router.post("/",async (req: Request, res: Response<MessageResponse | Product>)=>{
+router.post("/",async (req: Request<{}, {}, CreateProductBody>, res: Response<MessageResponse | Product>)=>{
 	try{
 		const validatedData= PartialProductSchema.parse(req.body);
 		const {id}=req.body

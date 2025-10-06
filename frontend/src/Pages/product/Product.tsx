@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import "./product.css"
-import Header from "../../components/Header";
 function Product(){
 	const [data,setData]=useState<ProductType[]>([])
 	 const [editId, setEditId] = useState<string | null>(null);

@@ -78,50 +78,91 @@ router.get('/:id', async (req: Request<{id: string}>, res: Response<CartItem | E
   }
 });
 
-// POST /api/cart - Skapa nytt cart-objekt
+// POST /api/cart - Skapa nytt cart-objekt eller uppdatera befintligt
 router.post('/', async (req: Request<{}, CartItem | ErrorMessage, CreateCartRequest>, res: Response<CartItem | ErrorMessage>) => {
   try {
     // Validera inkommande data
     const validatedData = createCartSchema.parse(req.body);
     const { userId, productId, amount } = validatedData;
     
-    // Generera unikt ID för cart
-    const cartId = `CART#${Date.now()}`;
-    
-    const cart = {
-      pk: cartId,
-      sk: '#METADATA',
-      userId,
-      productId,
-      amount,
-      type: 'cart'
-    };
-    
-    const command = new PutCommand({
+    // Kolla om produkten redan finns i användarens varukorg
+    const scanCommand = new ScanCommand({
       TableName: TABLE_NAME,
-      Item: cart
+      FilterExpression: '#type = :cartType AND userId = :userId AND productId = :productId',
+      ExpressionAttributeNames: {
+        '#type': 'type'
+      },
+      ExpressionAttributeValues: {
+        ':cartType': 'cart',
+        ':userId': userId,
+        ':productId': productId
+      }
     });
     
-    await ddbDocClient.send(command);
+    const existingCart = await ddbDocClient.send(scanCommand);
     
-    // Skapa response
-    const cartResponse: CartResponse = {
-      id: cartId.replace('CART#', ''),
-      userId,
-      productId,
-      amount,
-      type: 'cart'
-    };
-    
-    res.status(201).send(cartResponse);
+    if (existingCart.Items && existingCart.Items.length > 0) {
+      // Produkten finns redan - uppdatera antal
+      const existingItem = existingCart.Items[0];
+      const newAmount = (existingItem.amount || 0) + amount;
+      
+      const updateCommand = new PutCommand({
+        TableName: TABLE_NAME,
+        Item: {
+          ...existingItem,
+          amount: newAmount
+        }
+      });
+      
+      await ddbDocClient.send(updateCommand);
+      
+      const cartResponse: CartResponse = {
+        id: existingItem.pk?.replace('CART#', '') || '',
+        userId,
+        productId,
+        amount: newAmount,
+        type: 'cart'
+      };
+      
+      res.status(200).send(cartResponse);
+    } else {
+      // Produkten finns inte - skapa ny cart
+      const cartId = `CART#${Date.now()}`;
+      
+      const cart = {
+        pk: cartId,
+        sk: '#METADATA',
+        userId,
+        productId,
+        amount,
+        type: 'cart'
+      };
+      
+      const command = new PutCommand({
+        TableName: TABLE_NAME,
+        Item: cart
+      });
+      
+      await ddbDocClient.send(command);
+      
+      const cartResponse: CartResponse = {
+        id: cartId.replace('CART#', ''),
+        userId,
+        productId,
+        amount,
+        type: 'cart'
+      };
+      
+      res.status(201).send(cartResponse);
+    }
   } catch (error: any) {
-    console.error('Error creating cart:', error);
+    console.error('Error creating/updating cart:', error);
     
     if (error.name === 'ZodError') {
       return res.status(400).send({ error: 'Invalid data provided' });
     }
     
-    res.status(500).send({ error: 'Failed to create cart' });
+    res.status(500).send({ error: 'Failed to create/update cart' });
   }
 });
 

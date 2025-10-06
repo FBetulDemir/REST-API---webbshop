@@ -104,6 +104,40 @@ function Product(){
 		setAddProduct(false)
 		getData()
 	}
+
+	async function addToCartHandler(productId) {
+		// Hämta userId från localStorage (sparas efter login)
+		const userId = localStorage.getItem('userId')
+		
+		if (!userId) {
+			console.log("Du måste logga in först!")
+			return
+		}
+		
+		const amount = 1
+		
+		const newCartItem = {
+			userId: userId,
+			productId: productId,
+			amount: amount
+		}
+		
+		const response = await fetch("http://localhost:3000/api/cart", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(newCartItem)
+		})
+		
+		if(!response.ok){
+			console.log("can not add to cart")
+			return
+		}
+		
+		const result = await response.json()
+		console.log("Added to cart:", result)
+	}
 	
 	return(
 		<div className="product-container">
@@ -157,7 +191,7 @@ function Product(){
 			<p>Tillgängligt lager: {item.amountInStock}</p>
 			</div>
 			<div className="product-button">
-			<button>Lägg i kundvagn</button>
+			<button onClick={() => addToCartHandler(item.pk.replace("PRODUCT#", ""))}>Lägg i kundvagn</button>
 			<button onClick={()=>openEditHandler(item.pk)}>Redigera</button>
 			<button onClick={() => deleteHandler(item.pk.replace("PRODUCT#", ""))}>Tabort</button>
 			</div>

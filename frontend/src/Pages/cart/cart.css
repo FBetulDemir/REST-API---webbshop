@@ -139,6 +139,7 @@
 	color: var(--text-color);
 	text-align: center;
 	/* Gör spinner-kontrollerna alltid synliga */
+	appearance: textfield;
 	-moz-appearance: textfield;
 }
 

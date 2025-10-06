@@ -105,7 +105,7 @@ function Product(){
 		getData()
 	}
 
-	async function addToCartHandler(productId) {
+	async function addToCartHandler(productId: string) {
 		// Hämta userId från localStorage (sparas efter login)
 		const userId = localStorage.getItem('userId')
 		

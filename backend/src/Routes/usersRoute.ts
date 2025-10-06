@@ -125,7 +125,21 @@ router.post(
 
     const token = jwt.sign({ id: user.id, name: user.name }, JWT_SECRET);
 
-    res.json({ message: "Login successful", token });
+    // Spara login-aktivitet för backend-styrning
+    const loginRecord = {
+      pk: `LOGIN#${Date.now()}`,
+      sk: '#METADATA',
+      type: 'login',
+      userId: user.id,
+      userName: user.name,
+      timestamp: new Date().toISOString()
+    };
+    await ddb.send(new PutCommand({ TableName: table, Item: loginRecord }));
+
+    res.json({ 
+      message: "Login successful", 
+      token
+    });
   }
 );
 

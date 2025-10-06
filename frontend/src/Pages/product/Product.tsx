@@ -106,18 +106,10 @@ function Product(){
 	}
 
 	async function addToCartHandler(productId: string) {
-		// Hämta userId från localStorage (sparas efter login)
-		const userId = localStorage.getItem('userId')
-		
-		if (!userId) {
-			console.log("Du måste logga in först!")
-			return
-		}
-		
+		// Backend styr allt - ingen userId behövs
 		const amount = 1
 		
 		const newCartItem = {
-			userId: userId,
 			productId: productId,
 			amount: amount
 		}

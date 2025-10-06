@@ -6,15 +6,7 @@ function Cart(){
 	const [products, setProducts] = useState([])
 
 	async function getData(){
-		// Hämta userId från localStorage
-		const userId = localStorage.getItem('userId')
-		
-		if (!userId) {
-			alert("Du måste logga in först!")
-			return
-		}
-		
-		// Hämta både cart-data och produkt-data
+		// Backend styr allt - ingen userId behövs
 		const [cartResponse, productsResponse] = await Promise.all([
 			fetch("http://localhost:3000/api/cart"),
 			fetch("http://localhost:3000/products")
@@ -28,8 +20,8 @@ function Cart(){
 		const allCarts = await cartResponse.json()
 		const productsResult = await productsResponse.json()
 		
-		// Filtrera för den inloggade användaren
-		const userCarts = allCarts.filter(cart => cart.userId === userId)
+		// Backend filtrerar redan för användaren via session
+		const userCarts = allCarts
 		
 		// Kombinera cart-data med produktinformation
 		const cartWithProducts = userCarts.map(cart => {

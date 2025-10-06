@@ -44,9 +44,38 @@ const getUserInfo = async (userId: string) => {
   }
 };
 
+// Helper function to get current logged-in user
+const getCurrentUser = async (): Promise<string | null> => {
+  try {
+    const loginCommand = new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: '#type = :loginType',
+      ExpressionAttributeNames: { '#type': 'type' },
+      ExpressionAttributeValues: { ':loginType': 'login' }
+    });
+    const result = await ddbDocClient.send(loginCommand);
+    
+    // Hämta senaste login (högsta timestamp)
+    const logins = result.Items || [];
+    const latestLogin = logins.sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    )[0];
+    
+    return latestLogin?.userId || null;
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
+};
+
 // GET /api/cart - Hämta alla cart-objekt
 router.get('/', async (req: Request, res: Response<CartItem[] | ErrorMessage>) => {
   try {
+    // Backend styr - hämta senaste inloggade användare
+    const userId = await getCurrentUser();
+    if (!userId) {
+      return res.status(401).send({ error: 'No active user found' });
+    }
     const command = new ScanCommand({
       TableName: TABLE_NAME,
       FilterExpression: '#type = :cartType',
@@ -69,9 +98,12 @@ router.get('/', async (req: Request, res: Response<CartItem[] | ErrorMessage>) =
       type: 'cart' as const
     })) || [];
     
+    // Filtrera för den inloggade användaren
+    const userCarts = carts.filter(cart => cart.userId === userId);
+    
     // Lägg till user-info för varje cart
     const cartsWithUsers = await Promise.all(
-      carts.map(async cart => ({
+      userCarts.map(async cart => ({
         ...cart,
         user: await getUserInfo(cart.userId)
       }))
@@ -122,9 +154,15 @@ router.get('/:id', async (req: Request<{id: string}>, res: Response<CartItem | E
 // POST /api/cart - Skapa nytt cart-objekt eller uppdatera befintligt
 router.post('/', async (req: Request<{}, CartItem | ErrorMessage, CreateCartRequest>, res: Response<CartItem | ErrorMessage>) => {
   try {
+    // Backend styr - hämta senaste inloggade användare
+    const userId = await getCurrentUser();
+    if (!userId) {
+      return res.status(401).send({ error: 'No active user found' });
+    }
+    
     // Validera inkommande data
-    const validatedData = createCartSchema.parse(req.body);
-    const { userId, productId, amount } = validatedData;
+    const validatedData = createCartSchema.parse({ ...req.body, userId });
+    const { productId, amount } = validatedData;
     
     // Validera att användaren finns
     const userExists = await validateUser(userId);

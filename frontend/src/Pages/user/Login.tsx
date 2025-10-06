@@ -24,7 +24,7 @@ const Login = () => {
       console.log("Login attempt:", name);
       
       // Spara userId i localStorage för cart funktionalitet
-      localStorage.setItem('userId', data.user?.id || 'user123');
+      localStorage.setItem('userId', data.userId || 'user123');
 
       navigate("/");
     } catch (err: any) {

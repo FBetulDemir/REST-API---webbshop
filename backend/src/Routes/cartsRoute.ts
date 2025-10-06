@@ -35,6 +35,7 @@ const authenticateToken = (req: AuthenticatedRequest, res: Response, next: () =>
     return res.status(401).send({ error: 'Access token required' });
   }
 
+
   const JWT_SECRET = process.env.JWT_SECRET || "secretPassword";
   
   try {

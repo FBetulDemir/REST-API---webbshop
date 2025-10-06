@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import "./Login.css";
 
 const Login = () => {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     try {
@@ -24,11 +26,15 @@ const Login = () => {
       }
       console.log("Login attempt:", name);
       
-      // Spara userId i localStorage för cart funktionalitet
-      localStorage.setItem('userId', data.userId || 'user123');
+      // Logga in användaren i auth context
+      login({
+        id: data.userId || 'user123',
+        name: name,
+        email: data.email || ''
+      });
 
       navigate("/");
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message);
     }
   };

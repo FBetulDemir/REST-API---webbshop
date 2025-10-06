@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import "./cart.css"
 
 function Cart(){
 	const [data, setData] = useState([])
 	const [products, setProducts] = useState([])
+	const navigate = useNavigate()
 
 	async function getData(){
 		// Backend styr allt via session
@@ -119,4 +121,4 @@ function Cart(){
 	)
 }
 
-export default Cart
+export default Cart;

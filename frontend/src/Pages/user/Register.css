@@ -28,8 +28,7 @@ h2 {
 }
 
 .register-container {
-	margin-bottom: 30px;
-	margin-top: 30px;
+	margin-top: 60px;
   display: flex;
   flex-direction: column;
   align-items: center;

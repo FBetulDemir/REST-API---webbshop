@@ -3,12 +3,14 @@ import usersRouter from "./Routes/usersRoute.js";
 import cartsRoute from "./Routes/cartsRoute.js"
 import productRouter from "./Routes/productsRoute.js"
 import dotenv from "dotenv";
+import cors from "cors"
 dotenv.config();
 
 const app = express();
 
 // Middleware
 app.use(express.json());
+app.use(cors())
 
 const port = process.env.PORT;
 

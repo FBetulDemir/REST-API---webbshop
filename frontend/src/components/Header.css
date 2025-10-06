@@ -1,9 +1,15 @@
+* {
+  /* background-color: rgb(255, 223, 182); */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 .container-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1em 1.5em;
-  background-color: var(--color-secondary);
+  padding: 1em 0.5em;
+  background-color: rgb(255, 223, 182);
   border-bottom: 1px solid #ddd;
 }
 

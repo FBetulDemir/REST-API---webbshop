@@ -12,8 +12,8 @@
   --font-family: Arial, sans-serif;
 }
 
-body {
-  background-color: var(--color-secondary);
+.register-body {
+  /* background-color: var(--color-secondary); */
   color: var(--color-text);
   height: 100vh;
   display: flex;
@@ -31,7 +31,7 @@ h2 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
+  width: 50%;
   justify-content: center;
   border: #f0f0f0 solid 1px;
   border-radius: 12px;

@@ -4,4 +4,12 @@
   --color-accent: #d4af37;
   --color-text: #ffffff;
   --font-family: Arial, sans-serif;
+  --background-clr: #f0d0a6;
+}
+
+* {
+  /* background-color: rgb(255, 223, 182); */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }

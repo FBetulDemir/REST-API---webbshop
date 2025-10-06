@@ -11,8 +11,8 @@ function Header() {
         <NavLink to={"/"}>Hem</NavLink>
         <NavLink to={"/product"}>Produkter</NavLink>
         <NavLink to={"/cart"}>Varukorg</NavLink>
-        <NavLink to={"/register"}>Registrera dig</NavLink>
-        <NavLink to={"/login"}>Logga in</NavLink>
+        <NavLink to={"/user/register"}>Registrera dig</NavLink>
+        <NavLink to={"/user/login"}>Logga in</NavLink>
       </div>
     </div>
   );

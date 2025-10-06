@@ -4,12 +4,14 @@ import Product from "./Pages/product/product";
 import Cart from "./Pages/cart/cart";
 import Login from "./Pages/user/Login.tsx";
 import Register from "./Pages/user/Register.tsx";
-
+import Header from "./components/Header.tsx";
+import "./App.css";
 
 function App() {
   return (
     <>
       <HashRouter>
+        <Header />
         <Routes>
           <Route path="/" element={<Home></Home>}></Route>
           <Route path="/product" element={<Product></Product>}></Route>

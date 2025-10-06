@@ -36,43 +36,45 @@ const Register = () => {
     }
   };
   return (
-    <div className="register-container">
-      <h2>Registrera</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Namn:</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Email:</label>
-          <br />
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Lösenord</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        {error && <div style={{ color: "red" }}>{error}</div>}
-        {success && <p style={{ color: "green" }}>{success}</p>}
-        <button className="register-btn" type="submit">
-          Registrera
-        </button>
-      </form>
+    <div className="register-body">
+      <div className="register-container">
+        <h2>Registrera</h2>
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label>Namn:</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label>Email:</label>
+            <br />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label>Lösenord</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          {error && <div style={{ color: "red" }}>{error}</div>}
+          {success && <p style={{ color: "green" }}>{success}</p>}
+          <button className="register-btn" type="submit">
+            Registrera
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

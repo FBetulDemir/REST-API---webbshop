@@ -104,6 +104,10 @@ router.post('/', async (req: Request<{}, CartItem | ErrorMessage, CreateCartRequ
     if (existingCart.Items && existingCart.Items.length > 0) {
       // Produkten finns redan - uppdatera antal
       const existingItem = existingCart.Items[0];
+      if (!existingItem) {
+        return res.status(500).send({ error: 'Cart item not found' });
+      }
+      
       const newAmount = (existingItem.amount || 0) + amount;
       
       const updateCommand = new PutCommand({

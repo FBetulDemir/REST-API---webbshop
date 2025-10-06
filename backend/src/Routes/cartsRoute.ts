@@ -12,6 +12,7 @@ import { ddbDocClient, TABLE_NAME } from '../data/dynamoDb.js';
 import { GetCommand, PutCommand, DeleteCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import type { Cart, CreateCartRequest, UpdateCartRequest, CartResponse } from '../data/types.js';
 import jwt from 'jsonwebtoken';
+import type { JwtPayload, VerifyErrors } from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -19,6 +20,11 @@ dotenv.config();
 type CartItem = CartResponse;
 type ErrorMessage = { error: string };
 import { createCartSchema, updateCartSchema } from '../schemas/cartSchemas.js';
+
+interface UserPayload extends JwtPayload {
+  id: string;
+  name: string;
+}
 
 // JWT middleware för att validera token och extrahera userId
 const authenticateToken = (req: AuthenticatedRequest, res: Response, next: () => void) => {
@@ -31,19 +37,18 @@ const authenticateToken = (req: AuthenticatedRequest, res: Response, next: () =>
 
   const JWT_SECRET = process.env.JWT_SECRET || "secretPassword";
   
-  jwt.verify(token, JWT_SECRET, (err: Error | null, user: { id: string; name: string } | undefined) => {
-    if (err) {
-      return res.status(403).send({ error: 'Invalid or expired token' });
-    }
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as UserPayload;
     
-    if (!user) {
-      return res.status(403).send({ error: 'Invalid token payload' });
-    }
+    // här är user garanterat { id: string; name: string }
+    console.log(decoded.id, decoded.name);
     
     // Lägg till userId i request object
-    req.user = user;
+    req.user = decoded;
     next();
-  });
+  } catch (err) {
+    res.status(403).send({ error: 'Invalid or expired token' });
+  }
 };
 
 const router = Router();

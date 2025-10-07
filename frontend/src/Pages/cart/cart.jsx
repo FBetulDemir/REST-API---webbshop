@@ -10,10 +10,10 @@ function Cart(){
 	async function getData(){
 		// Backend styr allt via session
 		const [cartResponse, productsResponse] = await Promise.all([
-			fetch("http://localhost:3000/api/cart", {
+			fetch("/api/cart", {
 				credentials: 'include' // Inkludera session cookies
 			}),
-			fetch("http://localhost:3000/products")
+			fetch("/products")
 		])
 
 		if(!cartResponse.ok || !productsResponse.ok){
@@ -25,7 +25,7 @@ function Cart(){
 		const productsResult = await productsResponse.json()
 		
 		// Backend filtrerar redan för användaren via session
-		const userCarts = allCarts
+		const userCarts = allCarts	
 		
 		// Kombinera cart-data med produktinformation
 		const cartWithProducts = userCarts.map(cart => {
@@ -47,7 +47,7 @@ function Cart(){
 	}, [])
 
 	async function deleteHandler(cartId){
-		const response = await fetch(`http://localhost:3000/api/cart/${cartId}`, {
+		const response = await fetch(`/api/cart/${cartId}`, {
 			method: "DELETE",
 			credentials: 'include' // Inkludera session cookies
 		})
@@ -63,7 +63,7 @@ function Cart(){
 	}
 
 	async function updateAmountHandler(cartId, newAmount){
-		const response = await fetch(`http://localhost:3000/api/cart/${cartId}`, {
+		const response = await fetch(`/api/cart/${cartId}`, {
 			method: "PUT",
 			headers: {
 				"Content-Type": "application/json",

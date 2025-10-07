@@ -5,6 +5,7 @@ dotenv.config();
 console.log(process.env.AWS_REGION)
 console.log(process.env.AWS_ACCESS_KEY_ID)
 console.log(process.env.AWS_SECRET_ACCESS_KEY)
+console.log(process.env.TABLE_NAME)
 
 
 const client = new DynamoDBClient({
@@ -17,3 +18,6 @@ const client = new DynamoDBClient({
 
 
 export const ddbDocClient = DynamoDBDocumentClient.from(client);
+
+// Export table name for use in routes
+export const TABLE_NAME = process.env.TABLE_NAME || 'webshop';

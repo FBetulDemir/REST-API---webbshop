@@ -8,6 +8,14 @@ function Cart(){
 	const navigate = useNavigate()
 
 	async function getData(){
+		// Kontrollera om användaren är inloggad
+		const userId = localStorage.getItem('userId');
+		if (!userId) {
+			console.log("User not logged in");
+			navigate('/user/login');
+			return;
+		}
+
 		// Backend styr allt via session
 		const [cartResponse, productsResponse] = await Promise.all([
 			fetch("http://localhost:3000/api/cart", {
@@ -17,6 +25,12 @@ function Cart(){
 		])
 
 		if(!cartResponse.ok || !productsResponse.ok){
+			if (cartResponse.status === 401) {
+				console.log("Session expired, redirecting to login");
+				localStorage.removeItem('userId');
+				navigate('/user/login');
+				return;
+			}
 			console.log("Can not get data from database")
 			return
 		}

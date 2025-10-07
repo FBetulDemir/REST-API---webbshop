@@ -26,6 +26,9 @@ const Login = () => {
       
       // Spara userId i localStorage för cart funktionalitet
       localStorage.setItem('userId', data.userId || 'user123');
+      
+      // Trigga event för att uppdatera Header
+      window.dispatchEvent(new CustomEvent('loginStatusChanged'));
 
       navigate("/");
     } catch (err: any) {

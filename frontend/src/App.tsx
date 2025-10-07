@@ -5,6 +5,7 @@ import Cart from "./Pages/cart/cart";
 import Login from "./Pages/user/Login.tsx";
 import Register from "./Pages/user/Register.tsx";
 import Header from "./components/Header.tsx";
+import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import "./App.css";
 
 function App() {
@@ -15,7 +16,11 @@ function App() {
         <Routes>
           <Route path="/" element={<Home></Home>}></Route>
           <Route path="/product" element={<Product></Product>}></Route>
-          <Route path="/cart" element={<Cart></Cart>}></Route>
+          <Route path="/cart" element={
+            <ProtectedRoute>
+              <Cart></Cart>
+            </ProtectedRoute>
+          }></Route>
           <Route path="/user/login" element={<Login />} />
           <Route path="/user/register" element={<Register />} />
         </Routes>

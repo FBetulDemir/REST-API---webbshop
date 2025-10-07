@@ -44,7 +44,7 @@ function Product(){
 	}
 	
 	async function getData(){
-		const response=await fetch("http://localhost:3000/products")
+		const response=await fetch("/api/products")
 		if(!response.ok){
 			console.log("Can not get data from database")
 			return
@@ -59,7 +59,7 @@ function Product(){
 		
 	},[])
 	async function deleteHandler(productId:string){
-		const response= await fetch (`http://localhost:3000/products/${productId}`,{
+		const response= await fetch (`/api/products/${productId}`,{
 			method: "DELETE"
 			
 		})
@@ -102,7 +102,7 @@ function openEditHandler(product: ProductType){
 			
 			
 		}
-		const response=await fetch("http://localhost:3000/products",{
+		const response=await fetch("/api/products",{
 			method:"POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -134,7 +134,7 @@ function openEditHandler(product: ProductType){
         amountInStock: Number(available)
     };
 
-    const response = await fetch(`http://localhost:3000/products/${productId}`, {
+    const response = await fetch(`/api/products/${productId}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",

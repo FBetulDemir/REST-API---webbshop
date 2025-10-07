@@ -31,7 +31,7 @@ dotenv.config();
 const router = express.Router();
 const client = new DynamoDBClient({ region: "eu-north-1" });
 const ddb = DynamoDBDocumentClient.from(client);
-const table = process.env.TABLE_NAME!;
+const table = "webshop";
 const JWT_SECRET = process.env.JWT_SECRET || "secretPassword";
 
 // type UserParam = {

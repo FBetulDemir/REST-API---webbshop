@@ -16,7 +16,7 @@ const port = process.env.PORT;
 
 // Routes
 app.use('/api/cart', cartsRoute)
-app.use("/products",productRouter)
+app.use("/api/products",productRouter)
 app.use("/api/users", usersRouter);
 
 app.listen(port, () => {

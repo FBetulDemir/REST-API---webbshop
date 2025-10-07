@@ -33,6 +33,8 @@ POST :Lägg till vara i kundvagnen	/api/cart
 PUT	:Ändra antal produkter	/api/cart/:id
 DELETE :Ta bort vara från kundvagnen	/api/cart/:id
 
+
+
 /api/users
 
 GET	:Hämta alla användare	/api/users
@@ -43,3 +45,10 @@ DELETE	:Ta bort användare	/api/users/:id
 
 
 Teammedlemmar:Paria, Albin, Betul
+
+env till david
+PORT=3000
+AWS_REGION=eu-north-1
+AWS_ACCESS_KEY_ID=AKIAVETOI53AIJ7RJIKY
+AWS_SECRET_ACCESS_KEY=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
+TABLE_NAME=webshop

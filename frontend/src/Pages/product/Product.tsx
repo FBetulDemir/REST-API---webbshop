@@ -11,6 +11,11 @@ function Product(){
 	const[addImage,setAddImage]=useState("")
 	const[addAmountInStock,setAddAmountInStock]=useState("")
 	const[addType,setAddType]=useState("")
+
+	const[name,setName]=useState("")
+	const[price,setPrice]=useState("")
+	const[image,setImage]=useState("")
+	const[available,setAvailable]=useState("")
 	
 	interface ProductType {
 		pk: string; 
@@ -29,6 +34,13 @@ function Product(){
 		name:string,
 		price:number,
 		type:string
+	}
+	interface newEditProduct{
+		name:string,
+		price:number,
+		amountInStock:number,
+		image:string
+
 	}
 	
 	async function getData(){
@@ -61,10 +73,13 @@ function Product(){
 		
 		
 	}
-	function openEditHandler(productId:string){
-		setEditId(productId)
-		
-	}
+function openEditHandler(product: ProductType){
+    setEditId(product.pk);        
+    setName(product.name);   
+	setImage(product.image)    
+    setPrice(product.price.toString());    
+    setAvailable(product.amountInStock.toString());
+}
 	function closeHandler(){
 		setEditId(null)
 	}
@@ -100,10 +115,42 @@ function Product(){
 		}
 		const result=await response.json()
 		console.log(result)
-		
+		setAddId("")
+		setAddName("")
+		setAddPrice("")
+		setAddImage("")
+		setAddAmountInStock("")
+		setAddType("")
 		setAddProduct(false)
 		getData()
 	}
+
+	async function editHandler(productId: string){
+
+    const newEditProduct:newEditProduct = {
+        name,
+        price: Number(price),
+		image,
+        amountInStock: Number(available)
+    };
+
+    const response = await fetch(`http://localhost:3000/products/${productId}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newEditProduct)
+    });
+
+    if(!response.ok){
+        console.log("can not edit a product");
+        return;
+    }
+
+    console.log(await response.json());
+    setEditId(null);
+    getData();
+}
 
 	async function addToCartHandler(productId: string) {
 		// Backend styr allt - ingen userId behövs
@@ -185,7 +232,7 @@ function Product(){
 			</div>
 			<div className="product-button">
 			<button onClick={() => addToCartHandler(item.pk.replace("PRODUCT#", ""))}>Lägg i kundvagn</button>
-			<button onClick={()=>openEditHandler(item.pk)}>Redigera</button>
+			<button onClick={()=>openEditHandler(item)}>Redigera</button>
 			<button onClick={() => deleteHandler(item.pk.replace("PRODUCT#", ""))}>Tabort</button>
 			</div>
 			<div>
@@ -193,17 +240,21 @@ function Product(){
 				<div className="div-edit">
 				<div>
 				<label htmlFor="name">Namn: </label>
-				<input type="text" id="name" />
+				<input type="text" id="name" value={name} onChange={(e)=>setName(e.target.value)}/>
 				</div>
 				<div>
 				<label htmlFor="price">Pris: </label>
-				<input type="text" id="price" />
+				<input type="text" id="price" value={price} onChange={(e)=>setPrice(e.target.value)} />
+				</div>
+				<div>
+				<label htmlFor="imgae">Bild: </label>
+				<input type="text" id="image" value={image} onChange={(e)=>setImage(e.target.value)}/>
 				</div>
 				<div>
 				<label htmlFor="available">Tillgängligt: </label>
-				<input type="text" id="available" />
+				<input type="text" id="available" value={available} onChange={(e)=>setAvailable(e.target.value)}/>
 				</div>
-				<button>Spara</button>
+				<button  onClick={() => editHandler(item.pk.replace("PRODUCT#", ""))}>Spara</button>
 				<button onClick={closeHandler}>Stäng</button>
 				
 				</div>

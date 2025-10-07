@@ -34,21 +34,21 @@ const ddb = DynamoDBDocumentClient.from(client);
 const table = process.env.TABLE_NAME!;
 const JWT_SECRET = process.env.JWT_SECRET || "secretPassword";
 
-type UserParam = {
-  id: string;
-  name: string;
-  password: string;
-  email?: string;
-  type: "user";
-};
+// type UserParam = {
+//   id: string;
+//   name: string;
+//   password: string;
+//   email?: string;
+//   type: "user";
+// };
 
-// Type for DynamoDB scan result
-export type GetResult = Record<string, any> | undefined;
+// // Type for DynamoDB scan result
+// export type GetResult = Record<string, any> | undefined;
 
-interface ScanResult<T> {
-  Items?: T[];
-  Count?: number;
-}
+// interface ScanResult<T> {
+//   Items?: T[];
+//   Count?: number;
+// }
 
 // get all users
 router.get("/", async (req: Request, res: Response) => {
@@ -97,7 +97,7 @@ router.get(
 // create a new user
 router.post(
   "/register",
-  validate(registerSchema),
+  validate(registerSchema), // 'validate(registerSchema)' is middleware that checks the request body against the registerSchema before running the route handler. If validation fails, it sends a 400 error and does not call the handler.
   async (req: Request<{}, {}, RegisterRequest>, res: Response) => {
     try {
       const { password, name, email } = req.body;
@@ -125,8 +125,8 @@ router.post(
 
       // res.status(201).json({ message: "User created successfully" });
 
-      // Remove hashedPassword from user and store the rest in safe to avoid exposing sensitive info so the data remains only in the original user object and it is never exposed in API responses
-      const { hashedPassword: _, ...safe } = user;
+      // Remove hashedPassword from user and store the rest in safe (The 'safe' object contains all other user properties except 'hashedPassword') to avoid exposing sensitive info so the data remains only in the original user object and it is never exposed in API responses
+      const { hashedPassword: _, ...safe } = user; //The underscore '_' is a convention for unused variables, extracting 'hashedPassword' but do not use it.
       res.status(201).json(safe);
     } catch (error) {
       console.error(error);
@@ -138,7 +138,7 @@ router.post(
 // user login
 router.post(
   "/login",
-  validate(loginSchema),
+  validate(loginSchema), // 'validate(loginSchema)' is middleware that checks the request body against the loginSchema before running the route handler. If validation fails, it sends a 400 error and does not call the handler.
   async (req: Request<{}, {}, LoginRequest>, res: Response) => {
     const { name, password } = req.body;
 

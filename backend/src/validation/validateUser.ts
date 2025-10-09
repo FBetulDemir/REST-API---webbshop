@@ -25,13 +25,15 @@ export const idParamSchema = z.object({
   id: z.string().min(1, "id is required"),
 });
 
+// 'validate' is a reusable middleware that validates request data (body, params, or query, defaulting to "body" here) against a Zod schema. If validation fails, it sends a 400 error; otherwise, it passes control to the next middleware or route handler.
+//uses a generic type S to ensure type safety for the schema
 export const validate =
   <S extends z.ZodTypeAny>(
     schema: S,
     source: "body" | "params" | "query" = "body"
   ) =>
   (req: any, res: any, next: any) => {
-    const parsed = schema.safeParse(req[source]);
+    const parsed = schema.safeParse(req[source]); //validate the specified part of the request (e.g., req.body) against the schema.
     if (!parsed.success)
       return res.status(400).json({ error: parsed.error.format() });
     req[source] = parsed.data;
